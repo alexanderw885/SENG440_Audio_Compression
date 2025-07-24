@@ -3,20 +3,9 @@
 #include <stdint.h>
 #include <arm_neon.h>
 
-void printvec(int16x8_t out)
-{
-        int16_t temp_out[8];
-        vst1q_s16(temp_out, out);
-        for(int i = 0; i < 8; i++)
-        {
-            printf("%x\n", temp_out[i]);
-        }
-        printf("\n");
-}
-
 int8x8_t mulaw_neon(int16x8_t in)
 {
-    
+
     int16x8_t constant = vdupq_n_s16(0x8000);
     int16x8_t signs = vandq_s16(in, constant); // save the signs, 0=positive
     in = vabsq_s16(in);                         // get absolute value
@@ -53,31 +42,4 @@ int8x8_t mulaw_neon(int16x8_t in)
     out = vorrq_s16(out, signs);
 
     return vmovn_s16(out);
-}
-
-int main()
-{
-    int16_t temp[8] = { 0x7FFF,  
-                        0x7C00, 
-                        0x7CFF, 
-                        0x7C0F, 
-                        0x00F8, 
-                        0x00FF, 
-                        0x00FA, 
-                        0x00FC};
-    int16x8_t in = vld1q_s16(temp); // puts each value from array temp into vector in
-    mulaw_neon(in);
-    
-    int16_t temp2[8] = { 0x000F,
-                        0x0000,
-                        0x0008,
-                        0x0004,
-                        0x0002,
-                        0x0001,
-                        0x000A,
-                        0x0005,
-    };
-    in = vld1q_s16(temp2); // puts each value from array temp into vector in
-    //mulaw_neon(in);
- 
 }
