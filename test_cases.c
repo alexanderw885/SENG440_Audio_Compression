@@ -40,7 +40,7 @@ int main()
         8,
         16,
         32,
-        63
+        136
     };
     int8_t expected[8] = 
     {
