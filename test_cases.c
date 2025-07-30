@@ -183,5 +183,103 @@ int main()
     // ------------------------------------------
     printf("Decompression tests\n");
 
-    // 
+    // Test 6: decompression for chords 0-1
+    int8_t i6[8] = 
+    {
+        0x00,
+        0x0F,
+        0x80,
+        0x8F,
+        0x10,
+        0x1F,
+        0x90,
+        0x9F
+    };
+    int16_t e6[8] =
+    {
+        0x0000,
+        0x00F0,
+        0x0000,
+        0x00F0 * -1,
+        0x0100,
+        0x01F0,
+        0x0100 * -1,
+        0x01F0 * -1
+    };
+    test_decomp(e6, i6, 6);
+
+    // Test 7: decompression for chords 2-3
+    int8_t i7[8] = 
+    {
+        0x20,
+        0x2F,
+        0xA0,
+        0xAF,
+        0x30,
+        0x3F,
+        0xB0,
+        0xBF
+    };
+    int16_t e7[8] =
+    {
+        0x0200,
+        0x03E0,
+        0x0200 * -1,
+        0x03E0 * -1,
+        0x0400,
+        0x07C0,
+        0x0400 * -1,
+        0x07C0 * -1
+    };
+    test_decomp(e7, i7, 7);
+
+    // Test 8: decompression for chords 4-5
+    int8_t i8[8] = 
+    {
+        0x40,
+        0x4F,
+        0xC0,
+        0xCF,
+        0x50,
+        0x5F,
+        0xD0,
+        0xDF
+    };
+    int16_t e8[8] =
+    {
+        0x0800,
+        0x0F80,
+        0x0800 * -1,
+        0x0F80 * -1,
+        0x1000,
+        0x1F00,
+        0x1000 * -1,
+        0x1F00 * -1
+    };
+    test_decomp(e8, i8, 8);
+
+    // Test 9: decompression for chords 6-7
+    int8_t i9[8] = 
+    {
+        0x60,
+        0x6F,
+        0xE0,
+        0xEF,
+        0x70,
+        0x7F,
+        0xF0,
+        0xFF
+    };
+    int16_t e9[8] =
+    {
+        0x2000,
+        0x3E00,
+        0x2000 * -1,
+        0x3E00 * -1,
+        0x4000,
+        0x7C00,
+        0x4000 * -1,
+        0x7C00 * -1
+    };
+    test_decomp(e9, i9, 9);
 }

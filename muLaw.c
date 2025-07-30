@@ -69,32 +69,44 @@ int16x8_t MuLawDecompress(int8x8_t sample)
     int8x8_t step_mask = vdup_n_s8(0x0f);
 
     int8x8_t chord = vand_s8(sample, chord_mask);
-    int8x8_t sign = vshr_n_s8(sample, 7);
-    int16x8_t temp = vmovl_s8(chord);
+    chord = vshr_n_s8(chord, 4);
+    int8x8_t sign = vshr_n_s8(sample, 7); // arithmetic shift, not logical. It returns -1 if negative, 0 otherwise
     int16x8_t out = vmovl_s8(sample);
 
     // Remove all extra bits from the step value
     int16x8_t constant = vdupq_n_s16(0x000F);
     out = vandq_s16(out, constant);
 
-    // Add bit in 5th position before the shift
+
+    // add in 5th bit, but only when chord != 0
+    constant = vdupq_n_s16(0);
+    int16x8_t temp = vmovl_s8(chord);
+    uint16x8_t temp_uint = vceqq_s16(temp, constant); // get mask of all 1s where chord is not 0
+    temp_uint = vmvnq_u16(temp_uint);
+    int16x8_t temp_2 = vreinterpretq_s16_u16(temp_uint);
     constant = vdupq_n_s16(0x0010);
-    out = vaddq_s16(out, constant);
+    temp = vandq_s16(constant, temp_2); // equals 0x10 when chord is not 0
+    out = vaddq_s16(out, temp);
+
 
     // get the shift-left value from the chord
+    temp = vmovl_s8(chord);
+
     constant = vdupq_n_s16(3);
     temp = vaddq_s16(temp, constant);
+    // clamp lower-bounds to 4
+    temp_2 = vdupq_n_s16(4);
+    temp = vmaxq_s16(temp_2, temp);
     // Shift left
     out = vshlq_s16(out, temp);
-    
+
     // To add back the sign, I'm going to make a vector with the following rules:
     // if sign = 0, set that value to 1
     // if sign = 1, set that value to -1.
-    // temp = 1 - (sign * 2)
-    constant = vdupq_n_s16(1);
+    // We accomplish that by inverting all negative values, and then adding 1
     temp = vmovl_s8(sign);
-    temp = vmlsq_n_s16(constant, temp, 2);
+    temp_2 = veorq_s16(out, temp);
+    out = vsubq_s16(temp_2, temp);
 
-    out = vmulq_s16(out, temp);
     return out;
 }
