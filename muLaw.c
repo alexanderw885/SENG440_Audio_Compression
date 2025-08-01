@@ -1,20 +1,18 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <arm_neon.h>
+#include "muLaw.h"
 
-void printvec(int16x8_t vec, char format)
-{
-    int16_t out[8];
-    vst1q_s16(out, vec);
-    for(int i = 0; i < 8; i++)
-    {
-        if(format == 'x')
-            printf("%x\n", out[i]);
-        else
-            printf("%d\n", out[i]);
-    }
-}
+
+// void printvec(int16x8_t vec, char format)
+// {
+//     int16_t out[8];
+//     vst1q_s16(out, vec);
+//     for(int i = 0; i < 8; i++)
+//     {
+//         if(format == 'x')
+//             printf("%x\n", out[i]);
+//         else
+//             printf("%d\n", out[i]);
+//     }
+// }
 
 int8x8_t MuLawCompress(int16x8_t in)
 {
