@@ -5,7 +5,7 @@
 int test_comp(int8_t expected[8], int16_t input[8], int test_case)
 {
     int8_t actual[8];
-    vst1_s8(actual, MuLawCompress(vld1q_s16(input)));
+    MuLawCompress(input, actual);
 
     int errors;
     for(int i = 0; i < 8; i++)
@@ -27,7 +27,7 @@ int test_comp(int8_t expected[8], int16_t input[8], int test_case)
 int test_decomp(int16_t expected[8], int8_t input[8], int test_case)
 {
     int16_t actual[8];
-    vst1q_s16(actual, MuLawDecompress(vld1_s8(input)));
+    MuLawDecompress(input, actual);
 
     int errors;
     for(int i = 0; i < 8; i++)

@@ -5,8 +5,9 @@
 #include <stdint.h>
 #include <arm_neon.h>
 
-static inline int8x8_t MuLawCompress(int16x8_t in)
+static inline void MuLawCompress(int16_t* sample, int8_t* output)
 {
+    int16x8_t in = vld1q_s16(sample);
     int16x8_t constant = vdupq_n_s16(0x8000);
     int16x8_t signs = vandq_s16(in, constant); // save the signs, 0=positive
     in = vabsq_s16(in);                         // get absolute value
@@ -43,19 +44,24 @@ static inline int8x8_t MuLawCompress(int16x8_t in)
     // add back sign
     signs = vshrq_n_s16(signs, 8);
     out = vorrq_s16(out, signs);
+
+    // Convert back into int pointer
     int8x8_t out8x8 = vmovn_s16(out);
-    return out8x8;
+    vst1_s8(output, out8x8);
+    return;
 }
 
-static inline int16x8_t MuLawDecompress(int8x8_t sample)
+static inline void MuLawDecompress(int8_t* sample, int16_t* output)
 {
+    int8x8_t in = vld1_s8(sample);
+
     int8x8_t chord_mask = vdup_n_s8(0x70);
     int8x8_t step_mask = vdup_n_s8(0x0f);
 
-    int8x8_t chord = vand_s8(sample, chord_mask);
+    int8x8_t chord = vand_s8(in, chord_mask);
     chord = vshr_n_s8(chord, 4); // sets chord range to [0,7]
-    int8x8_t sign = vshr_n_s8(sample, 7); // arithmetic shift, not logical. It returns -1 if negative, 0 otherwise
-    int16x8_t out = vmovl_s8(sample);
+    int8x8_t sign = vshr_n_s8(in, 7); // arithmetic shift, not logical. It returns -1 if negative, 0 otherwise
+    int16x8_t out = vmovl_s8(in);
 
     // Remove all extra bits from the step value
     int16x8_t constant = vdupq_n_s16(0x000F);
@@ -79,6 +85,7 @@ static inline int16x8_t MuLawDecompress(int8x8_t sample)
     temp = vmovl_s8(sign);
     out = veorq_s16(out, temp);
     out = vsubq_s16(out, temp);
-
-    return out;
+    
+    vst1q_s16(output, out);
+    return;
 }
