@@ -11,10 +11,6 @@ static inline int8x8_t MuLawCompress(int16x8_t in)
     int16x8_t signs = vandq_s16(in, constant); // save the signs, 0=positive
     in = vabsq_s16(in);                         // get absolute value
 
-    // The bottom 4 bits are lost in compression, so they can be removed
-    constant = vdupq_n_s16(0xFFF0);
-    in = vandq_s16(in, constant);
-
     // Get right shift amount
     int16x8_t clz = vclzq_s16(in);
 
@@ -57,7 +53,7 @@ static inline int16x8_t MuLawDecompress(int8x8_t sample)
     int8x8_t step_mask = vdup_n_s8(0x0f);
 
     int8x8_t chord = vand_s8(sample, chord_mask);
-    chord = vshr_n_s8(chord, 4);
+    chord = vshr_n_s8(chord, 4); // sets chord range to [0,7]
     int8x8_t sign = vshr_n_s8(sample, 7); // arithmetic shift, not logical. It returns -1 if negative, 0 otherwise
     int16x8_t out = vmovl_s8(sample);
 
@@ -66,25 +62,32 @@ static inline int16x8_t MuLawDecompress(int8x8_t sample)
     out = vandq_s16(out, constant);
 
 
-    // add in 5th bit, but only when chord != 0
-    constant = vdupq_n_s16(0);
+    // add left 3, add bias, and shift left by clz
+    out = vshlq_n_s16(out, 3);
+    constant = vdupq_n_s16(0x0084);
+    out = vaddq_s16(out, constant);
     int16x8_t temp = vmovl_s8(chord);
-    uint16x8_t temp_uint = vceqq_s16(temp, constant); // get mask of all 1s where chord is not 0
-    temp_uint = vmvnq_u16(temp_uint);
-    int16x8_t temp_2 = vreinterpretq_s16_u16(temp_uint);
-    constant = vdupq_n_s16(0x0010);
-    temp = vandq_s16(constant, temp_2); // equals 0x10 when chord is not 0
-    out = vaddq_s16(out, temp);
+    //out = vshlq_s16(out, temp);
+
+
+    // constant = vdupq_n_s16(0);
+    // int16x8_t temp = vmovl_s8(chord);
+    // uint16x8_t temp_uint = vceqq_s16(temp, constant); // get mask of all 1s where chord is not 0
+    // temp_uint = vmvnq_u16(temp_uint);
+    // int16x8_t temp_2 = vreinterpretq_s16_u16(temp_uint);
+    // constant = vdupq_n_s16(0x0010);
+    // temp = vandq_s16(constant, temp_2); // equals 0x10 when chord is not 0
+    // out = vaddq_s16(out, temp);
 
 
     // get the shift-left value from the chord
     temp = vmovl_s8(chord);
 
-    constant = vdupq_n_s16(3);
-    temp = vaddq_s16(temp, constant);
+    // constant = vdupq_n_s16(3);
+    //temp = vaddq_s16(temp, constant);
     // clamp lower-bounds to 4
-    temp_2 = vdupq_n_s16(4);
-    temp = vmaxq_s16(temp_2, temp);
+    int16x8_t temp_2 = vdupq_n_s16(4);
+    // temp = vmaxq_s16(temp_2, temp);
     // Shift left
     out = vshlq_s16(out, temp);
 
