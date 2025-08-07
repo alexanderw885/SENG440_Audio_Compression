@@ -72,20 +72,20 @@ static inline void MuLawDecompress(int8_t* sample, int16_t* output)
     out = vshlq_n_s16(out, 3);
     constant = vdupq_n_s16(0x0084);
     out = vaddq_s16(out, constant);
-    int16x8_t temp = vmovl_s8(chord);
 
     // Shift left
-    temp = vmovl_s8(chord);
+    int16x8_t temp = vmovl_s8(chord);
     out = vshlq_s16(out, temp);
 
-    // To add back the sign, I'm going to make a vector with the following rules:
-    // if sign = 0, set that value to 1
-    // if sign = 1, set that value to -1.
-    // We accomplish that by inverting all negative values, and then adding 1
+    // To add back the sign, we use the sign vector as a mask.
+    // negative values have their sign represented as -1, or 0xFFFF. 
+    // an exclusive OR with the sign will perform a bitwise negation on the target
     temp = vmovl_s8(sign);
-    out = veorq_s16(out, temp);
+    out = veorq_s16(out, temp); 
+    // Finally, subtracting the sign from our output value is the same as adding 1 to all the values we inverted
+    // The two steps are arithmetic negation in 2's complement
     out = vsubq_s16(out, temp);
-    
+
     vst1q_s16(output, out);
     return;
 }
