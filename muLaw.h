@@ -67,28 +67,9 @@ static inline int16x8_t MuLawDecompress(int8x8_t sample)
     constant = vdupq_n_s16(0x0084);
     out = vaddq_s16(out, constant);
     int16x8_t temp = vmovl_s8(chord);
-    //out = vshlq_s16(out, temp);
 
-
-    // constant = vdupq_n_s16(0);
-    // int16x8_t temp = vmovl_s8(chord);
-    // uint16x8_t temp_uint = vceqq_s16(temp, constant); // get mask of all 1s where chord is not 0
-    // temp_uint = vmvnq_u16(temp_uint);
-    // int16x8_t temp_2 = vreinterpretq_s16_u16(temp_uint);
-    // constant = vdupq_n_s16(0x0010);
-    // temp = vandq_s16(constant, temp_2); // equals 0x10 when chord is not 0
-    // out = vaddq_s16(out, temp);
-
-
-    // get the shift-left value from the chord
-    temp = vmovl_s8(chord);
-
-    // constant = vdupq_n_s16(3);
-    //temp = vaddq_s16(temp, constant);
-    // clamp lower-bounds to 4
-    int16x8_t temp_2 = vdupq_n_s16(4);
-    // temp = vmaxq_s16(temp_2, temp);
     // Shift left
+    temp = vmovl_s8(chord);
     out = vshlq_s16(out, temp);
 
     // To add back the sign, I'm going to make a vector with the following rules:
@@ -96,8 +77,8 @@ static inline int16x8_t MuLawDecompress(int8x8_t sample)
     // if sign = 1, set that value to -1.
     // We accomplish that by inverting all negative values, and then adding 1
     temp = vmovl_s8(sign);
-    temp_2 = veorq_s16(out, temp);
-    out = vsubq_s16(temp_2, temp);
+    out = veorq_s16(out, temp);
+    out = vsubq_s16(out, temp);
 
     return out;
 }
